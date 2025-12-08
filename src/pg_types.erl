@@ -77,7 +77,7 @@ format_error(Error) ->
 update(Pool, TypeInfos, Parameters) ->
     Types = update_map(TypeInfos, Parameters, #{}),
     maps:map(fun(Oid, TypeInfo) ->
-                     persistent_term:put({?MODULE, Pool, Oid}, TypeInfo)
+                     ets:insert(?PG_TYPES_TABLE, {{Pool, Oid}, TypeInfo})
              end, Types),
     ok.
 
@@ -106,10 +106,10 @@ lookup_typsends(TypeInfos, TypeSend) ->
     lists:filter(fun(T) -> T#type_info.typsend =:= TypeSend end, TypeInfos).
 
 lookup_type_info(Pool, Oid) ->
-    case persistent_term:get({?MODULE, Pool, Oid}, undefined) of
-        undefined ->
+    case ets:lookup(?PG_TYPES_TABLE, {Pool, Oid}) of
+        [] ->
             unknown_oid;
-        TypeInfo ->
+        [{_, TypeInfo}] ->
             TypeInfo
     end.
 
