@@ -13,3 +13,5 @@
                     base_oid   :: integer(),
                     comp_oids  :: [integer()],
                     comp_types :: [#type_info{}] | undefined}).
+
+-define(PG_TYPES_TABLE, pg_types_table).

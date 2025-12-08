@@ -64,18 +64,18 @@ get_array_dims(Row) ->
 encode_array_binary_header(Dims, HasNulls, ElementTypeOID) ->
     NDims = length(Dims),
     Flags = if
-        HasNulls -> 1;
-        true -> 0
-    end,
+                HasNulls -> 1;
+                true -> 0
+            end,
     EncodedDimensions = [<<Dim:32/integer, 1:32/integer>> || Dim <- Dims],
     [<<NDims:32/integer, Flags:32/integer, ElementTypeOID:32/integer>>, EncodedDimensions].
 
 decode_array_bin(<<Dimensions:32/signed-integer, _Flags:32/signed-integer,
                    _ElementOID:32/signed-integer, Remaining/binary>>, TypeInfo) ->
     {RemainingData, DimsInfo} = lists:foldl(fun(_Pos, {Bin, Acc}) ->
-                <<Nbr:32/signed-integer, LBound:32/signed-integer, Next/binary>> = Bin,
-                {Next, [{Nbr, LBound} | Acc]}
-        end, {Remaining, []}, lists:seq(1, Dimensions)),
+                                                    <<Nbr:32/signed-integer, LBound:32/signed-integer, Next/binary>> = Bin,
+                                                    {Next, [{Nbr, LBound} | Acc]}
+                                            end, {Remaining, []}, lists:seq(1, Dimensions)),
     DataList = decode_array_bin_aux(RemainingData, TypeInfo, []),
     {array, Expanded} = expand(DataList, DimsInfo),
     Expanded.
